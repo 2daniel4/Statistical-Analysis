@@ -1,5 +1,9 @@
 #!/bin/tcsh
 
+#For analysis of DTI imaging
+#1.Must have fsl installed
+#2.create design files with fsl's glm_gui
+#3.Used for a Monte Carlo simulation with 5000 permutations
 
 
 @ linenum = 1
