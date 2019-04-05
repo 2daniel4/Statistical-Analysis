@@ -1,0 +1,73 @@
+#install.packages("readxl")
+#install.packages("lsr")
+#install.packages("PairedData")
+#install.packages("ggplot2")
+#install.packages("Hmisc")
+#install.packages("ggpubr")
+
+#load readxl
+library("readxl")
+library("lsr")
+library("PairedData")
+library("ggplot2")
+library("Hmisc")
+library("ggpubr")
+
+getwd()
+#set working directory
+setwd('/Volumes/DANIEL')
+
+#read in xlsx files
+diffusion_data = read_excel("AES_diffusion_stats.xlsx", sheet = "activation")
+
+#create data frame with diffusion data
+diffusion_data = data.frame(diffusion_data)
+
+
+#create column (turn condition into a factorial) and create summary for columns
+activation_diff=diffusion_data[,4]
+edu=as.factor(diffusion_data$edu)
+age=diffusion_data$age
+gender=factor(diffusion_data$gender)
+body_FA_diff=diffusion_data[,18]
+head_FA_diff=diffusion_data[,19]
+body_RD_diff=diffusion_data[,32]
+head_RD_diff=diffusion_data[,33]
+tst=diffusion_data[,34]
+
+shapiro.test(activation_diff)
+shapiro.test(body_FA_diff)
+shapiro.test(head_FA_diff)
+
+#Get correlation value corr(x,y)
+cor(body_FA_diff,activation_diff)
+cor(head_FA_diff,activation_diff)
+cor(body_RD_diff,activation_diff)
+cor(head_RD_diff,activation_diff)
+cor(body_FA_diff,tst)
+cor(head_FA_diff,tst)
+cor(body_RD_diff,tst)
+cor(head_RD_diff,tst)
+#cor(body_FA_diff,)
+#cor(head_FA_diff,)
+#cor(body_RD_diff,)
+#cor(head_RD_diff,)
+
+
+#Graph correlations with confidence intervals and coefficients using the pearson method (normal data)
+ggscatter(diffusion_data, x="ROI_diff", y="HP_body_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
+ggscatter(diffusion_data, x="ROI_diff", y="HP_head_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
+ggscatter(diffusion_data, x="ROI_diff", y="HP_body_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
+ggscatter(diffusion_data, x="ROI_diff", y="HP_head_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
+ggscatter(diffusion_data, x="tst_mean", y="HP_body_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
+ggscatter(diffusion_data, x="tst_mean", y="HP_head_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
+ggscatter(diffusion_data, x="tst_mean", y="HP_body_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
+ggscatter(diffusion_data, x="tst_mean", y="HP_head_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
+
