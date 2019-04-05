@@ -1,1 +1,69 @@
+#install.packages("readxl")
+#load readxl
+library("readxl")
+getwd()
+
+#set working directory
+setwd('/path/2/working/directory')
+
+#read in xlsx sheet named "" for file named "" into diffusion_data
+diffusion_data = read_excel("diffusion_stats.xlsx", sheet = "FA_raw")
+
+#create data frame with diffusion data
+diffusion_data = data.frame(diffusion_data)
+
+#create column (turn condition into a factorial (i.e. "Ex", "Rest") and round column data based on # of digits
+condition=diffusion_data[,1]
+condition=factor(condition)
+tail=round(diffusion_data[,3], digits = 3)
+body=round(diffusion_data[,4], digits = 3)
+head=round(diffusion_data[,5],digits = 3)
+
+#Create summary of diffusion data columns
+summary(condition)
+summary(tail)
+summary(body)
+summary(head)
+
+#check for normalcy
+shapiro.test(tail)
+shapiro.test(body)
+shapiro.test(head)
+
+
+#subset the data so that you get columns based on the value for the condition column
+exercise_tail=subset(diffusion_data, condition=="Ex", HP_tail)
+exercise_body=subset(diffusion_data, condition=="Ex", HP_body)
+exercise_head=subset(diffusion_data, condition=="Ex", HP_head)
+rest_tail=subset(diffusion_data, condition=="Rest", HP_tail)
+rest_body=subset(diffusion_data, condition=="Rest", HP_body)
+rest_head=subset(diffusion_data, condition=="Rest", HP_head)
+
+#plot data (quartiles)
+plot(condition, tail, main='L_tail_FA_by_condition',ylab=("FA"))
+plot(condition, body, main='L_body_FA_by_condition',ylab=("FA"))
+plot(condition, head, main='L_head_FA_by_condition',ylab=("FA"))
+
+#Plot Paired to see individual data point changes
+pd_tail=paired(exercise_tail, rest_tail)
+plot(pd_tail,type="profile")+theme_bw()
+pd_body=paired(exercise_body, rest_body)
+plot(pd_body,type="profile")+theme_bw()
+pd_head=paired(exercise_head, rest_head)
+plot(pd_head,type="profile")+theme_bw()
+
+#run paired ttest on columns (t.test if normal distribution found with shapiro otherwise use wilcox)
+#Can include cohensD for effect size if want to
+t.test(tail~condition, mu=0, paired=T, data = diffusion_data)
+wilcox.test(tail~condition, mu=0, paired=T, data = diffusion_data)
+#cohensD(tail~condition, method="paired", data = diffusion_data)
+t.test(body~condition, mu=0, paired=T, data = diffusion_data)
+wilcox.test(body~condition, mu=0, paired=T, data = diffusion_data)
+#cohensD(body~condition, method="paired", data = diffusion_data)
+t.test(head~condition, mu=0, paired=T, data = diffusion_data)
+wilcox.test(head~condition, mu=0, paired=T, data = diffusion_data)
+#cohensD(head~condition, method="paired", data = diffusion_data)
+
+
+
 
