@@ -1,3 +1,6 @@
+#!/usr/bin/env Rscript  
+
+
 #install.packages("readxl")
 #install.packages("lsr")
 #install.packages("PairedData")
