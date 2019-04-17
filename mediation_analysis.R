@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript  
+
 #install.packages("readxl")
 #install.packages("mediation")
 #install.packages("psych")
