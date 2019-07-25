@@ -5,72 +5,74 @@
 #install.packages("lsr")
 #install.packages("PairedData")
 #install.packages("ggplot2")
+#install.packages("lme4")
+#install.packages("nlme")
 #install.packages("Hmisc")
 #install.packages("ggpubr")
+#install.packages("ggpmisc")
 
-#load readxl
+library("ggpmisc")
+library("Hmisc")
+library("ggpubr")
+library("nlme")
+library("lme4")
 library("readxl")
 library("lsr")
 library("PairedData")
 library("ggplot2")
-library("Hmisc")
-library("ggpubr")
 
 getwd()
 #set working directory
-setwd('/Volumes/DANIEL')
+setwd("")
 
 #read in xlsx files
-diffusion_data = read_excel("AES_diffusion_stats.xlsx", sheet = "activation")
-
+diffusion_data = read_excel("AES_diffusion_stats.xlsx", sheet = "results")
 #create data frame with diffusion data
 diffusion_data = data.frame(diffusion_data)
 
+#create data frame with just data interested in looking at
+diffusion_data=data.frame(diffusion_data$FA_full_cov,diffusion_data$age,diffusion_data$Conditions)
 
-#create column (turn condition into a factorial) and create summary for columns
-activation_diff=diffusion_data[,4]
-edu=as.factor(diffusion_data$edu)
-age=diffusion_data$age
-gender=factor(diffusion_data$gender)
-body_FA_diff=diffusion_data[,18]
-head_FA_diff=diffusion_data[,19]
-body_RD_diff=diffusion_data[,32]
-head_RD_diff=diffusion_data[,33]
-tst=diffusion_data[,34]
+#rename columns of data frame
+names(diffusion_data)[names(diffusion_data) == "diffusion_data.FA_full_cov"] <- "FA_full_cov"
+names(diffusion_data)[names(diffusion_data) == "diffusion_data.age"] <- "age"
+names(diffusion_data)[names(diffusion_data) == "diffusion_data.Conditions"] <- "Conditions"
 
-shapiro.test(activation_diff)
-shapiro.test(body_FA_diff)
-shapiro.test(head_FA_diff)
+#test for normalcy
+shapiro.test(diffusion_data$FA_full_cov)
+shapiro.test(diffusion_data$age)
 
-#Get correlation value corr(x,y)
-cor(body_FA_diff,activation_diff)
-cor(head_FA_diff,activation_diff)
-cor(body_RD_diff,activation_diff)
-cor(head_RD_diff,activation_diff)
-cor(body_FA_diff,tst)
-cor(head_FA_diff,tst)
-cor(body_RD_diff,tst)
-cor(head_RD_diff,tst)
-#cor(body_FA_diff,)
-#cor(head_FA_diff,)
-#cor(body_RD_diff,)
-#cor(head_RD_diff,)
+#calculate corelation statistics like p-value and rho
+res = cor.test(diffusion_data$FA_full_cov,diffusion_data$age, method = "spearman")
+res
+res$p.value
+res$estimate
 
-
-#Graph correlations with confidence intervals and coefficients using the pearson method (normal data)
-ggscatter(diffusion_data, x="ROI_diff", y="HP_body_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
-ggscatter(diffusion_data, x="ROI_diff", y="HP_head_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
-ggscatter(diffusion_data, x="ROI_diff", y="HP_body_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
-ggscatter(diffusion_data, x="ROI_diff", y="HP_head_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
-ggscatter(diffusion_data, x="tst_mean", y="HP_body_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
-ggscatter(diffusion_data, x="tst_mean", y="HP_head_FA", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
-ggscatter(diffusion_data, x="tst_mean", y="HP_body_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
-ggscatter(diffusion_data, x="tst_mean", y="HP_head_RD", add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson" )
-
+#plot FA by age varying the color and shape of the points by the condition
+b = ggplot(diffusion_data, aes(age,FA_full_cov, shape=Conditions, color = Conditions)) +
+  geom_point()+
+  scale_color_manual(values = c("black", "grey39"))+
+  geom_smooth(aes(linetype = Conditions, fill=Conditions), method = "lm", formula = y~x, color ="black") +
+  scale_fill_manual(values = c("black", "grey39")) +
+  scale_shape_manual(values = c(16,1)) +
+  ggtitle("Hippocampal FA with Respect to Age") + xlab("Age (years)") + ylab("FA") +  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 30),
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 15),
+    axis.title.y = element_text(size = 20),
+    axis.title.x = element_text(size = 20),
+    legend.text = element_text(size=15),
+    legend.text.align = 0,
+    legend.position = "top"
+  )
+  
+#add the p-value and rho and modify background
+b + annotate("text", x = 68.2, y = .24, label = "r = -0.44, p<.001", size = 6) +
+  theme(
+  panel.border = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  panel.background = element_blank(),
+  axis.line = element_line(colour = "black")
+)     
