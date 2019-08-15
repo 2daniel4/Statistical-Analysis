@@ -31,10 +31,14 @@ shapiro.test(diffusion_data$HP_anterior_R)
 
 #plot columns
 
-plot(condition, diffusion_data$HP_anterior_R, main="HP_anterior_by_condition", ylab=("FA"))
-#Plot Paired
-#pd_anterior=paired(exercise_anterior, rest_anterior)
-#plot(pd_anterior,type="profile")+theme_bw()
+p = ggplot(diffusion_data, aes(x=Condition, y=MD_full_anat))+ geom_boxplot(color="black") +geom_jitter(position = position_jitter(0.2)) + scale_color_manual(breaks =c("Ex","Rest"), values= c("red","black"))+
+expand_limits(y=c(.9,1.2)) + ylab("FA") + theme_bw() +
+theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) + ggtitle("Hippocampal RD by condition") +
+theme(plot.title = element_text(hjust = 0.5, size = 30)) +
+theme(axis.text.x = element_text(size = 20)) + 
+theme(axis.text.y = element_text(size = 15)) +
+theme(axis.title.y = element_text(size = 20)) + 
+theme(axis.title.x = element_text(size = 20))
 
 #run paired ttest on columns
 t.test(diffusion_data$HP_anterior_R~condition, mu=0, paired=T, data = diffusion_data)
