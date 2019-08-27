@@ -1,1 +1,51 @@
+library("readxl")
+library("ggplot2")
+library(ggpubr)
+
+getwd()
+##Set working directory
+setwd('/Volumes/DANIEL')
+
+#Import excell sheet into data frame
+diffusion_data = read_excel("AES_diffusion_stats.xlsx", sheet = "results")
+diffusion_data = data.frame(diffusion_data)                                                            
+
+# Make Graph 1
+ a=ggplot(diffusion_data, aes(x=conditions_cov, y=FA_full_cov))+ geom_boxplot(color="black") +geom_jitter(position = position_jitter(0.2), size=.9) + scale_color_manual(breaks =c("Ex","Rest"), values= c("red","black"))+
++   expand_limits(y=c(.075,.25)) + ylab("FA") + xlab("Condition") + theme_bw() +
++   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
++   theme(plot.title = element_text(hjust = 0.5, size = 30)) +
++   theme(axis.text.x = element_text(size = 20)) + 
++   theme(axis.text.y = element_text(size = 15)) +
++   theme(axis.title.y = element_text(size = 20)) + 
++   theme(axis.title.x = element_text(size = 20))
+
+# Make graph 2
+b=ggplot(diffusion_data, aes(x=conditions_cov, y=MD_full_cov))+ geom_boxplot(color="black") +geom_jitter(position = position_jitter(0.2), size=.9) + scale_color_manual(breaks =c("Ex","Rest"), values= c("red","black"))+
++   expand_limits(y=c(.85,1.25)) + ylab("MD (mm/s^2)") + xlab("Condition") + theme_bw() +
++   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
++   theme(plot.title = element_text(hjust = 0.5, size = 30)) +
++   theme(axis.text.x = element_text(size = 20)) + 
++   theme(axis.text.y = element_text(size = 15)) +
++   theme(axis.title.y = element_text(size = 20)) + 
++   theme(axis.title.x = element_text(size = 20))
+
+# Make graph 3
+c=ggplot(diffusion_data, aes(x=conditions_cov, y=RD_full_cov))+ geom_boxplot(color="black") +geom_jitter(position = position_jitter(0.2), size=.9) + scale_color_manual(breaks =c("Ex","Rest"), values= c("red","black"))+
++   expand_limits(y=c(.75,1.15)) + ylab("RD (mm/s^2)") + xlab("Condition") + theme_bw() +
++   theme(panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
++   theme(plot.title = element_text(hjust = 0.5, size = 30)) +
++   theme(axis.text.x = element_text(size = 20)) + 
++   theme(axis.text.y = element_text(size = 15)) +
++   theme(axis.title.y = element_text(size = 20)) + 
++   theme(axis.title.x = element_text(size = 20))
+
+#arrange all 3 graphs together in a row
+ x = ggarrange(a,b,c, labels = c("a","b","c"), ncol = 3, nrow = 1)
+ x
+ 
+ #save the image as a high resolution (300dpi) TIFF file **Must type all this in on R not Rstudio**
+ tiff("Diffusivity by condition.tiff", res = 300, width = 10, height = 10, units = "in")
+ plot(x)
+ dev.off()
 
