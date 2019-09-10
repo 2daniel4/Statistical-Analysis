@@ -1,0 +1,95 @@
+#!/usr/bin/Rscript
+
+# Set output for Rmarkdown
+---
+title: "EDMS646 HW1"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(car)
+```
+
+## HW1 Part A
+
+## Part 1
+The control group lost an average of -0.45($\pm$ 7.99) pounds while the group that received family therapy gained an average of 7.26($\pm$ 7.26) pounds.
+```{r} 
+
+rm(list=ls())
+
+setwd("C:/Users/ddcc2/Downloads/")
+data <- read.csv(file = "Therapy.csv", header = TRUE, na.strings = "-99")
+data$group <- as.factor(data$group)
+
+group_by(data, group) %>% #Summarize the data by group
+  summarise(
+    count = n(),
+    mean = mean(y, na.rm = TRUE),
+    sd = sd(y, na.rm = TRUE)
+  )
+
+Control <- subset(data,group =="0") #Create subsets of data for the two groups
+Therapy <- subset(data, group == "1")
+
+summary(Control$y) #Provide quartile information about 
+summary(Therapy$y)
+
+
+#boxplot of Control
+ggplot(data, aes(y=y,x=group))+geom_boxplot()+ylab("Weight gain (pounds)")+ggtitle("Weight change by condition group")+theme(plot.title = element_text(hjust = 0.5))
+```
+
+## Part 2
+
+$H_0$:$\mu_1$=$\mu_2$
+
+$H_1$:$\mu_1$$\neq$$\mu_2$ 
+
+An independent groups t-test was performed comparing the mean weight change for the Control (M=-0.45, SD =$\pm$ 7.99) and Therapy (M=7.26, SD=$\pm$ 7.26) condition. Using an alpha level of 0.01 this test was found to be statistically significant, t(41) = -3.2992, p-value <.01 (two-tailed), indicating the girls receiving family therapy as a treatment for anorexia saw significantly greater weight gain that girls in the control group that received no therapy. 
+```{r}
+t.test(data$y~data$group, paired = FALSE, var.equal = TRUE, conf.level =0.99)
+```
+
+## Part 3
+We are 99% certain that the true population group mean difference in weight gain between the control group and therapy group will be between (-14.06, -1.36).
+```{r}
+t=qt(.995, 41) # Find 99 percent t distribution value
+mean_diff = mean(Control$y)-mean(Therapy$y) # Find mean difference
+
+std_diff = sqrt(var(Control$y)/26+var(Therapy$y)/17) # Standard deviation difference between the two groups
+
+mean_diff-(std_diff*t) # Calculate 99 percent confidence interval.
+mean_diff+(std_diff*t)
+
+
+```
+# Part B: Test of Group Variance
+
+## Part 1
+The variance-ratio F-test on weight gain gives a value of 1.24 which results in a p-value=.676, indicating the variance in weight change between the control and therapy group were not significantly different.
+``` {r}
+# Calculate variance for both groups
+Fratio = var(Control$y)/var(Therapy$y)
+
+# Report pvalue using f
+pf(Fratio, 26, 17)
+```
+
+## Part 2
+A Levene's test on weight gain indicated a non-significant difference between the Control and Therapy group. The Levene's test lead to the same conclusion as the F-test performed in Part B.
+
+``` {r}
+# Check homogeneity of variances using Levene's test in the car package
+leveneTest(data$y~data$group)
+```
+
+
+## Part 3
+A negative F-test statistic would be impossible because it is the ratio of two variances. Variance is a squared unit and thus must always be positive. It is impossible to get a negative value from the ratio of two test statistics.
