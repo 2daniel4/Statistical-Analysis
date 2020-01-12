@@ -1,0 +1,258 @@
+---
+title: "DTI"
+author: "Daniel Callow"
+date: "12/30/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library("readxl")
+library("lsr")
+library("PairedData")
+library("ggplot2")
+library("ggpubr")
+library("standardize")
+library(tidyverse)
+library(knitr)
+library(effects)
+library(psych)
+library(candisc)
+library(extrafont)
+
+diffusion_data <- read_excel("C:/Users/ddcc2/Downloads/DTI_results.xlsx", sheet = "Sheet2")
+
+require(ggplot2)
+apatheme=theme_bw()+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        panel.border = element_blank(),
+        text=element_text(family='Arial', size=18,color = "black"),
+        legend.title=element_blank(),
+        legend.position=c(.7,.8),
+        axis.text = element_text(color="black"),
+        axis.line.x = element_line(color='black'),
+        axis.line.y = element_line(color='black'))
+```
+
+MD only models
+```{r}
+
+model4 = lm(diffusion_data$md_anat_bil~diffusion_data$Age+diffusion_data$Gender)
+summary(model4)
+
+model4scaled = lm(scale(diffusion_data$md_anat_bil)~scale(diffusion_data$Age)+scale(diffusion_data$Gender))
+summary(model4scaled)
+
+
+model5 = lm(diffusion_data$md_ant_hipp~diffusion_data$Age+diffusion_data$Gender)
+summary(model5)
+model5scaled = lm(scale(diffusion_data$md_ant_hipp)~scale(diffusion_data$Age)+scale(diffusion_data$Gender))
+summary(model5scaled)
+
+model6 = lm(diffusion_data$md_post_hipp~diffusion_data$Age+diffusion_data$Gender)
+summary(model6)
+model6scaled = lm(scale(diffusion_data$md_post_hipp)~scale(diffusion_data$Age)+scale(diffusion_data$Gender))
+summary(model6scaled)
+
+```
+
+MD + Age + Gender + vol models
+
+```{r}
+model4_vol = lm(diffusion_data$md_anat_bil~diffusion_data$Age+diffusion_data$Gender+diffusion_data$Vwhole)
+summary(model4_vol)
+
+model4_volscaled = lm(scale(diffusion_data$md_anat_bil)~scale(diffusion_data$Age)+scale(diffusion_data$Gender)+scale(diffusion_data$Vwhole))
+summary(model4_volscaled)
+
+model5_vol = lm(diffusion_data$md_ant_hipp~diffusion_data$Age+diffusion_data$Gender+diffusion_data$Vant)
+summary(model5_vol)
+
+model5_volscaled = lm(scale(diffusion_data$md_ant_hipp)~scale(diffusion_data$Age)+scale(diffusion_data$Gender)+scale(diffusion_data$Vant))
+summary(model5_volscaled)
+
+model6_vol = lm(diffusion_data$md_post_hipp~diffusion_data$Age+diffusion_data$Gender+diffusion_data$Vpost)
+summary(model6_vol)
+
+model6_volscaled = lm(scale(diffusion_data$md_post_hipp)~scale(diffusion_data$Age)+scale(diffusion_data$Gender)+scale(diffusion_data$Vpost))
+summary(model6_volscaled)
+```
+
+MD + Source Memory + Volume Models
+```{r}
+model1 = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_anat_bil+diffusion_data$Vwhole)
+summary(model1)
+
+model1_sex = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_anat_bil+diffusion_data$Vwhole+diffusion_data$Gender)
+summary(model1_sex)
+
+model2 = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_ant_hipp+diffusion_data$Vant)
+summary(model2)
+
+model2_sex = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_ant_hipp+diffusion_data$Vant+diffusion_data$Gender)
+summary(model2_sex)
+
+model3 = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_post_hipp+diffusion_data$Vpost)
+summary(model3)
+
+model3_sex = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_post_hipp+diffusion_data$Vpost+diffusion_data$Gender)
+summary(model3_sex)
+
+
+
+model1_scaled = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_anat_bil)+scale(diffusion_data$Vwhole))
+summary(model1_scaled)
+
+model1_scaled_sex = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_anat_bil)+scale(diffusion_data$Vwhole)+scale(diffusion_data$Gender))
+summary(model1_scaled_sex)
+
+model2_scaled = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_ant_hipp)+scale(diffusion_data$Vant))
+summary(model2_scaled)
+
+model2_scaled_sex = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_ant_hipp)+scale(diffusion_data$Vant)+scale(diffusion_data$Gender))
+summary(model2_scaled_sex)
+
+model3_scaled = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_post_hipp)+scale(diffusion_data$Vpost))
+summary(model3_scaled)
+
+model3_scaled_sex = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_post_hipp)+scale(diffusion_data$Vpost)+scale(diffusion_data$Gender))
+summary(model3_scaled_sex)
+```
+
+MD + Source Memory + Age + Sex
+```{r}
+model1_age = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_anat_bil+diffusion_data$Vwhole+diffusion_data$Age+diffusion_data$Gender)
+
+summary(model1_age)
+                
+model2_age = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_ant_hipp+diffusion_data$Vant+diffusion_data$Age+diffusion_data$Gender)
+summary(model2_age)
+                
+model3_age = lm(diffusion_data$SM_SCorrect_FCorrect_Percent_W1~diffusion_data$md_post_hipp+diffusion_data$Vpost+diffusion_data$Age+diffusion_data$Gender)
+summary(model3_age)
+
+
+
+
+model1_age_scaled = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_anat_bil)+scale(diffusion_data$Vwhole)+scale(diffusion_data$Age)+scale(diffusion_data$Gender))
+
+summary(model1_age_scaled)
+                
+model2_age_scaled = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_ant_hipp)+scale(diffusion_data$Vant)+scale(diffusion_data$Age)+scale(diffusion_data$Gender))
+summary(model2_age_scaled)
+                
+model3_age_scaled = lm(scale(diffusion_data$SM_SCorrect_FCorrect_Percent_W1)~scale(diffusion_data$md_post_hipp)+scale(diffusion_data$Vpost)+scale(diffusion_data$Age)+scale(diffusion_data$Gender))
+summary(model3_age_scaled)
+```
+ 
+Manually deriving residual values and using ggplot (looks a little weird with the resid vals)
+
+Testing things out
+```{r}
+#This same thing can be done manually, which is what I proposed in your office. 
+
+#First, you set a model predicting the DV with all variables EXCEPT the IV of interest (in this case, rh_rostralAC_n_medialOF_avg)
+TotalMDModel <- lm(diffusion_data$md_anat_bil ~ 
+    diffusion_data$Gender + diffusion_data$Vwhole)
+
+#Then, you set a model predicting the partial variable of interest (rh_rostralAC_n_medialOF_avg) by all other IVs, but NOT the DV.
+AgeModel <- lm(diffusion_data$Age ~ 
+    diffusion_data$Gender + diffusion_data$Vwhole)
+
+#Next, you get the residual values  using the residuals() function on each model and saving them to a variable name (these will/should be the same as the values that are computed in avPlot)
+TotalMDResid<-residuals(TotalMDModel)
+AgeResid<-residuals(AgeModel)
+
+#These can then be used to make the same plot except using the variable names given to the residual values (rPFCResid and IntQPFCResid) :) 
+ManualggPlot<-ggplot(mapping = aes(x=AgeResid, y=TotalMDResid))+ geom_point(size=2)+geom_smooth(color="black",method="lm",aes(y=TotalMDResid, x=AgeResid),formula = y~x) +apatheme + ylab("Age") +  ylab( expression(paste("MD ", (mm/s^{2}))))
+
+ManualggPlot
+```
+
+
+Plot MD Age - resid 
+```{r}
+
+#predict values for a given model and include all covariates in data frame, too. This will ONLY be used for adding slope lines and SE for lines (if we can get SE to work.)
+data.pred.md  <- data.frame(pred_md_anat_bil = predict.lm(model4_vol, diffusion_data, se.fit = T), Age=diffusion_data$Age,Vwhole=diffusion_data$Vwhole,Gender=diffusion_data$Gender)
+
+
+# Graph it
+md_anat_bil_Plot<-ggplot(data=diffusion_data,
+                aes(x=Age,
+                    y=md_anat_bil))+ xlab("Age (years)")+  ylab( expression(paste("Total HPC MD ", (mm/s^{2}))))+
+  geom_point(aes(),size=2, alpha = .5)+
+geom_smooth(method="lm",data = data.pred.md, formula = y~x,level = .95, aes(x=Age, y=pred_md_anat_bil.fit), color =  "blue")+
+  theme_bw() +
+  theme_minimal(base_size = 18, base_family = "Arial") +
+  theme(axis.line = element_line(colour = "black"),axis.text=element_text(size=16, color='black', family = "Arial"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        legend.position="none")
+md_anat_bil_Plot
+```
+
+Plot Graph Test
+```{r}
+
+#predict values for a given model and include all covariates in data frame, too. This will ONLY be used for adding slope lines and SE for lines (if we can get SE to work.)
+
+# Set up predicted values for MD based on Age while controlling for sex and volume
+data.pred.md  <- data.frame(pred_md_anat_bil = predict.lm(model4_vol, diffusion_data, se.fit = T), Age=diffusion_data$Age,Vwhole=diffusion_data$Vwhole,Gender=diffusion_data$Gender)
+
+# Set up predicted values for SM based on MD while controlling for sex and volume
+data.pred.sm <- data.frame(pred_md_sm_bil = predict.lm(model1_sex, diffusion_data, se.fit = T), MD = diffusion_data$md_anat_bil, Vwhole=diffusion_data$Vwhole, Gender=diffusion_data$Gender)
+
+# Set up predicted values for SM based on MD while controlling for sex, volume and Age
+data.pred.sm2 <- data.frame(pred_md_sm_bil = predict.lm(model1_age, diffusion_data, se.fit = T), MD = diffusion_data$md_anat_bil, Vwhole=diffusion_data$Vwhole, Gender=diffusion_data$Gender, Age=diffusion_data$Age)
+
+# Graph it
+a<-ggplot(data=diffusion_data,
+                aes(x=Age,
+                    y=md_anat_bil))+ xlab("Age (years)")+  ylab(bquote("MD (mm/"*s^2*")"))+
+  geom_point()+
+geom_smooth(method="lm",data = data.pred.md, formula = y~x, aes(x=Age, y=pred_md_anat_bil.fit))+
+  theme_bw() +
+  theme_minimal(base_size = 16, base_family = "Arial") +
+  theme(axis.line = element_line(colour = "black"),axis.text=element_text(size=14, color='black', family = "Arial"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        legend.position="none")
+a
+
+
+b=ggplot(diffusion_data, aes(y=SM_SCorrect_FCorrect_Percent_W1, x=md_anat_bil))+ geom_point() + xlab(bquote("Mean Diffusivity (mm/"*s^2*")")) + ylab("Source Memory \n(% correct)") +geom_smooth(method = "lm",data = data.pred.sm, aes(x=MD, y=pred_md_sm_bil.fit), formula = y~x) + 
+  theme_bw() +
+  theme_minimal(base_size = 16, base_family = "Arial") +
+  theme(axis.line = element_line(colour = "black"),axis.text=element_text(size=14, color='black', family = "Arial"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        legend.position="none")
+b
+
+c=ggplot(diffusion_data, aes(y=SM_SCorrect_FCorrect_Percent_W1, x=md_anat_bil))+ geom_point() + xlab(bquote("Mean Diffusivity (mm/"*s^2*")")) + ylab("Source Memory \n(% correct)") +geom_smooth(method = "lm",data = data.pred.sm2, aes(x=MD, y=pred_md_sm_bil.fit), formula = y~x) + 
+  theme_bw() +
+  theme_minimal(base_size = 16, base_family = "Arial") +
+  theme(axis.line = element_line(colour = "black"),axis.text=element_text(size=14, color='black', family = "Arial"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        legend.position="none")
+c
+
+x = ggarrange(a,c, labels = c("a","c"), ncol = 1, nrow = 2)
+x
+jpeg("Diffusivity and Source Memory Age Control.jpg", res = 600, width = 18, height = 18, units = "cm")
+plot(x)
+```
+
