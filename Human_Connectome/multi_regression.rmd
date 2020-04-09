@@ -1,0 +1,576 @@
+---
+title: "Connectome Analysis"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(car)
+library(ggplot2)
+library(psych)
+library(lm.beta)
+library(mice)
+
+setwd("C:/Users/ddcc2/OneDrive/Desktop/Connectome Analysis/")
+
+# Three different data sets for freesurfer, behavioral and dempgraphic data. Combine data into one data frame
+behave=read.csv("behave_connectome.csv")
+freesurf=read.csv("freesurf_connectome.csv")
+demographic=read.csv("demographic.csv")
+dat=cbind(behave,demographic)
+'''
+
+#Doesn't appear to be too much multicolinearity among these predictors
+```{r}
+# Scatterplot to look at associations
+scatterplotMatrix(~Endurance_Unadj+BMI+Age_in_Yrs+Gender+SSAGA_Educ+BPSystolic,id=list(n=3), data=dat)
+require(HH)
+
+# Check for multicolinearity
+mod1 <- lm(Endurance_Unadj~BMI+Age_in_Yrs+Gender+SSAGA_Educ+BPSystolic, data=dat, x=TRUE)
+lm.beta(mod1)
+summary(mod1)
+vif(mod1)
+
+sqrt(vif(mod1))
+
+tol<-1/vif(mod1); tol
+
+# look at residuals
+qqPlot(mod1)
+residualPlots(mod1)
+
+# Scatterplot of some diffusion data
+scatterplotMatrix(~Endurance_Unadj+l_CA1_ODI+l_CA1_NDI+r_CA1_ODI+r_CA1_NDI,id=list(n=3), data=dat)
+
+# Check residuals
+mod1 <- lm(Endurance_Unadj~l_CA1_ODI+l_CA1_NDI+r_CA1_ODI+r_CA1_NDI, data=dat, x=TRUE)
+lm.beta(mod1)
+summary(mod1)
+qqPlot(mod1)
+residualPlots(mod1,id=list(n=3))
+
+summary(mod1)
+residualPlot(mod1, id=list(n=3))
+
+stud.resid<-rstudent(mod1)
+stud.resid.df<-data.frame(ID=(dat$Subject),studres=stud.resid)
+outlierTest(mod1)
+influencePlot(mod1, main="", id=list(n=3))
+
+# Look for influential/outlier points
+infIndexPlot(mod1, main="", 
+vars=c("Cook"), 
+id=list(n=4))
+```
+
+## Fitness and Cognition Controlling for nothing (Split up gender in graphs)
+# There appear to be associations
+
+```{r}
+# Flanker (Executive)
+mod1=lm(dat$Flanker_Unadj~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=Flanker_Unadj,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Pic Vocab
+mod2=lm(dat$PicVocab_Unadj~dat$Endurance_Unadj)
+summary(mod2)
+lm.beta(mod2)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=PicVocab_Unadj,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Pic Sequence (Episodic)
+mod2=lm(dat$PicSeq_Unadj~dat$Endurance_Unadj)
+summary(mod2)
+lm.beta(mod2)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=PicSeq_Unadj,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Card sort (Executive)
+mod3=lm(dat$CardSort_Unadj~dat$Endurance_Unadj)
+summary(mod3)
+lm.beta(mod3)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=CardSort_Unadj,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Penn progressive matrices (Fluid Intelligence)
+mod3=lm(dat$PMAT24_A_CR~dat$Endurance_Unadj)
+summary(mod3)
+lm.beta(mod3)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=PMAT24_A_CR,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+
+# Processing speed (Pattern completion speed)
+mod6=lm(dat$ProcSpeed_Unadj~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=ProcSpeed_Unadj,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Self Regulation/Impulsivity (Delay Discounting)
+mod6=lm(dat$DDisc_AUC_200~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=DDisc_AUC_200,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Spatial Orientation
+mod6=lm(dat$VSPLOT_TC~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=VSPLOT_TC,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Penn Word Memory (Episodic memory)
+mod6=lm(dat$IWRD_TOT~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=IWRD_TOT,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Working Memory (list sorting)
+mod6=lm(dat$ListSort_Unadj~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=ListSort_Unadj,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+# Global Cognition
+mod8=lm(dat$CogTotalComp_Unadj~dat$Endurance_Unadj)
+summary(mod8)
+lm.beta(mod8)
+ggplot(data=behave, aes(x=Endurance_Unadj,y=CogTotalComp_Unadj,color=Gender))+geom_point()+geom_smooth(method="lm")
+```
+##Fitness and Cognition basic regression model and then model controlling for age, gender, education, systolic blood pressure and BMI
+# Includes residual plots and standardized values
+# Seems like fitness is still significant for a lot of the measures even after controlling for the additional facotrs.
+```{r}
+# Flanker (Executive)
+mod1=lm(dat$Flanker_Unadj~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+mod1=lm(dat$Flanker_Unadj~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Pic Vocab
+mod2=lm(dat$PicVocab_Unadj~dat$Endurance_Unadj)
+summary(mod2)
+lm.beta(mod2)
+mod1=lm(dat$PicVocab_Unadj~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Pic Sequence (Episodic)
+mod2=lm(dat$PicSeq_Unadj~dat$Endurance_Unadj)
+summary(mod2)
+lm.beta(mod2)
+mod1=lm(dat$PicSeq_Unadj~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Card sort (Executive)
+mod3=lm(dat$CardSort_Unadj~dat$Endurance_Unadj)
+summary(mod3)
+lm.beta(mod3)
+mod1=lm(dat$CardSort_Unadj~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Penn progressive matrices (Fluid Intelligence)
+mod3=lm(dat$PMAT24_A_CR~dat$Endurance_Unadj)
+summary(mod3)
+lm.beta(mod3)
+mod1=lm(dat$PMAT24_A_CR~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+
+# Processing speed (Pattern completion speed)
+mod6=lm(dat$ProcSpeed_Unadj~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+mod1=lm(dat$ProcSpeed_Unadj~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Self Regulation/Impulsivity (Delay Discounting)
+mod6=lm(dat$DDisc_AUC_200~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+mod1=lm(dat$DDisc_AUC_200~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Spatial Orientation
+mod6=lm(dat$VSPLOT_TC~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+mod1=lm(dat$VSPLOT_TC~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Penn Word Memory (Episodic memory)
+mod6=lm(dat$IWRD_TOT~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+mod1=lm(dat$IWRD_TOT~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Working Memory (list sorting)
+mod6=lm(dat$ListSort_Unadj~dat$Endurance_Unadj)
+summary(mod6)
+lm.beta(mod6)
+mod1=lm(dat$ListSort_Unadj~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Global Cognition
+mod8=lm(dat$CogTotalComp_Unadj~dat$Endurance_Unadj)
+summary(mod8)
+lm.beta(mod8)
+mod1=lm(dat$CogTotalComp_Unadj~dat$BMI+dat$Endurance_Unadj+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ+dat$BPSystolic)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+```
+
+## Hippocampus Subfields and Endurance
+# Basic Regression and then Control
+# Includes standardized coefficients and general and residual plots
+
+```{r}
+# Left Hipp CA1
+# ODI
+mod1=lm(dat$l_CA1_ODI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=l_CA1_ODI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$l_CA1_ODI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+#NDI
+mod1=lm(dat$l_CA1_NDI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=l_CA1_NDI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$l_CA1_NDI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Right Hipp CA1
+# ODI
+mod1=lm(dat$r_CA1_ODI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=r_CA1_ODI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$r_CA1_ODI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+#NDI
+mod1=lm(dat$r_CA1_NDI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=r_CA1_NDI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$r_CA1_NDI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+# Left Hipp CA3
+# ODI
+mod1=lm(dat$l_CA3_ODI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=l_CA3_ODI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$l_CA3_ODI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+#NDI
+mod1=lm(dat$l_CA3_NDI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=l_CA3_NDI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$l_CA3_NDI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Right Hipp CA3
+# ODI
+mod1=lm(dat$r_CA3_ODI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=r_CA3_ODI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$r_CA3_ODI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+#NDI
+mod1=lm(dat$r_CA3_NDI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=r_CA3_NDI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$r_CA3_NDI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+# Left Hipp CA4DG
+# ODI
+mod1=lm(dat$l_CA4DG_ODI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=l_CA4DG_ODI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$l_CA4DG_ODI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+#NDI
+mod1=lm(dat$l_CA4DG_NDI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=l_CA4DG_NDI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$l_CA4DG_NDI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+# Right Hipp CA4DG
+# ODI
+mod1=lm(dat$r_CA4DG_ODI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=r_CA4DG_ODI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$r_CA4DG_ODI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+
+#NDI
+mod1=lm(dat$r_CA4DG_NDI~dat$Endurance_Unadj)
+summary(mod1)
+lm.beta(mod1)
+
+ggplot(data=behave, aes(x=Endurance_Unadj,y=r_CA4DG_NDI,color=Gender))+geom_point()+geom_smooth(method="lm")
+
+mod1=lm(dat$r_CA4DG_NDI~dat$Endurance_Unadj+dat$Gender+dat$Age_in_Yrs+dat$SSAGA_Educ+dat$BMI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$Endurance_Unadj)
+
+```
+
+# Hippocampus and Cognition
+# Control for BMI, age, gender, and education
+# Basic and full model with standardized coefficients, general graph and residualized plot.
+```{r}
+# Left Hipp CA1
+# ODI
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA1_ODI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA1_ODI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA1_ODI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA1_ODI)
+
+
+#NDI
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA1_NDI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA1_NDI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA1_NDI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA1_NDI)
+
+
+# Right Hipp CA1
+# ODI
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA1_ODI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA1_ODI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA1_ODI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA1_ODI)
+
+
+#NDI
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA1_NDI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA1_NDI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA1_NDI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA1_NDI)
+
+
+# Left Hipp CA3
+# ODI
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA3_ODI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA3_ODI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA3_ODI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA3_ODI)
+
+
+#NDI
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA3_NDI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA3_NDI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA3_NDI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA3_NDI)
+
+
+# Right Hipp CA3
+# ODI
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA3_ODI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA3_ODI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA3_ODI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA3_ODI)
+
+
+#NDI
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA3_NDI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA3_NDI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA3_NDI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA3_NDI)
+
+# Left Hipp CA4DG
+# ODI
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA4DG_ODI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA4DG_ODI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA4DG_ODI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA4DG_ODI)
+
+
+#NDI
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA4DG_NDI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA4DG_NDI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$l_CA4DG_NDI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$l_CA4DG_NDI)
+
+
+# Right Hipp CA4DG
+# ODI
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA4DG_ODI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA4DG_ODI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA4DG_ODI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA4DG_ODI)
+
+
+#NDI
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA4DG_NDI)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA4DG_NDI)
+
+mod1=lm(dat$CogTotalComp_Unadj~dat$r_CA4DG_NDI+dat$BMI+dat$Age_in_Yrs+dat$Gender+dat$SSAGA_Educ)
+summary(mod1)
+lm.beta(mod1)
+avPlot(mod1,dat$r_CA4DG_NDI)
+```
